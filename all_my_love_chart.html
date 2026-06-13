@@ -294,29 +294,83 @@
     font-family: 'Inter', sans-serif;
     margin-bottom: 2px;
   }
-  .fs-btn {
+  .zoom-bar {
     position: fixed;
     top: 14px;
     right: 16px;
     z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 4px;
     background: var(--bg-secondary);
     border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 3px 6px;
+  }
+  .zoom-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 2px 6px;
+    cursor: pointer;
+    border-radius: 4px;
+    line-height: 1;
+    transition: background 0.15s;
+  }
+  .zoom-btn:hover { background: var(--border); color: var(--text); }
+  .zoom-level {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    min-width: 36px;
+    text-align: center;
+    user-select: none;
+  }
+  .zoom-btn-reset { font-size: 12px; }
+  .bar-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border);
+    margin: 0 2px;
+  }
+  .fs-btn {
+    background: none;
+    border: none;
     color: var(--text-secondary);
     font-family: 'Inter', sans-serif;
     font-size: 11px;
     font-weight: 500;
-    padding: 5px 12px;
-    border-radius: 6px;
+    padding: 2px 8px;
     cursor: pointer;
+    border-radius: 4px;
     letter-spacing: 0.04em;
     transition: background 0.15s, color 0.15s;
+    line-height: 1;
   }
   .fs-btn:hover { background: var(--border); color: var(--text); }
 </style>
 </head>
 <body>
-<button class="fs-btn" id="fsBtn" onclick="toggleFS()">⛶ Fullscreen</button>
+<div class="zoom-bar" id="zoomBar">
+  <button class="zoom-btn" onclick="zoomOut()" title="Zoom out">−</button>
+  <span class="zoom-level" id="zoomLevel">100%</span>
+  <button class="zoom-btn" onclick="zoomIn()" title="Zoom in">+</button>
+  <button class="zoom-btn zoom-btn-reset" onclick="zoomReset()" title="Reset zoom">↺</button>
+  <span class="bar-divider"></span>
+  <button class="fs-btn" id="fsBtn" onclick="toggleFS()">⛶ Fullscreen</button>
+</div>
 <script>
+  let zoomLevel = 100;
+  function zoomIn() { zoomLevel = Math.min(zoomLevel + 10, 200); applyZoom(); }
+  function zoomOut() { zoomLevel = Math.max(zoomLevel - 10, 50); applyZoom(); }
+  function zoomReset() { zoomLevel = 100; applyZoom(); }
+  function applyZoom() {
+    document.querySelector('.page').style.zoom = zoomLevel + '%';
+    document.getElementById('zoomLevel').textContent = zoomLevel + '%';
+  }
   function toggleFS() {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
@@ -330,6 +384,11 @@
     if (!document.fullscreenElement) {
       document.getElementById('fsBtn').textContent = '⛶ Fullscreen';
     }
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '+' || e.key === '=') { zoomIn(); e.preventDefault(); }
+    if (e.key === '-') { zoomOut(); e.preventDefault(); }
+    if (e.key === '0' && (e.ctrlKey || e.metaKey)) { zoomReset(); e.preventDefault(); }
   });
 </script>
 <div class="page">
