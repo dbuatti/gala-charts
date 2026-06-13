@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1366, initial-scale=1">
+<title>Unstoppable — Sia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --bg-bar: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.22);
+    --text: #0d0d0d;
+    --text-secondary: #555;
+    --text-muted: #999;
+    --label-verse-bg: #E1F5EE; --label-verse-fg: #085041;
+    --label-pre-bg: #EEEDFE; --label-pre-fg: #3C3489;
+    --label-chorus-bg: #FAEEDA; --label-chorus-fg: #633806;
+    --tag-bg: #f0f0f0; --tag-fg: #444;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f0f0f;
+      --bg-secondary: #1a1a1a;
+      --bg-bar: #1a1a1a;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.22);
+      --text: #f0f0f0;
+      --text-secondary: #aaa;
+      --text-muted: #555;
+      --label-verse-bg: #0d2a20; --label-verse-fg: #5DCAA5;
+      --label-pre-bg: #1e1c40; --label-pre-fg: #AFA9EC;
+      --label-chorus-bg: #2a1f08; --label-chorus-fg: #FAC775;
+      --tag-bg: #222; --tag-fg: #aaa;
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; }
+  .page { width: 1300px; margin: 0 auto; padding: 28px 32px 40px; }
+
+  .header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 22px;
+  }
+  .song-title { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; color: var(--text); }
+  .song-meta { font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* FORM STRIP */
+  .form-strip {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 24px;
+  }
+  .form-pill {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.07em;
+    text-transform: uppercase; padding: 3px 8px; border-radius: 4px; font-family: 'Inter', sans-serif;
+  }
+  .form-arrow { font-size: 11px; color: var(--text-muted); margin: 0 1px; }
+  .pill-verse  { background: var(--label-verse-bg);  color: var(--label-verse-fg); }
+  .pill-pre    { background: var(--label-pre-bg);    color: var(--label-pre-fg); }
+  .pill-chorus { background: var(--label-chorus-bg); color: var(--label-chorus-fg); }
+
+  /* TWO COLUMN LAYOUT */
+  .main-columns { display: grid; grid-template-columns: 420px 1fr; gap: 28px; }
+
+  /* CHORD SECTION */
+  .chord-col { display: flex; flex-direction: column; gap: 20px; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 4px; font-family: 'Inter', sans-serif;
+  }
+  .label-verse  { background: var(--label-verse-bg);  color: var(--label-verse-fg); }
+  .label-pre    { background: var(--label-pre-bg);    color: var(--label-pre-fg); }
+  .label-chorus { background: var(--label-chorus-bg); color: var(--label-chorus-fg); }
+  .section-note { font-size: 11px; color: var(--text-muted); font-family: 'Inter', sans-serif; }
+
+  .bars { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 3px; }
+  .bar {
+    background: var(--bg-bar); border: 1px solid var(--border); border-radius: 6px;
+    padding: 7px 9px; min-height: 52px;
+    display: flex; flex-direction: column; justify-content: center; gap: 2px;
+  }
+  .bar-num  { font-size: 8px; color: var(--text-muted); font-family: 'Inter', sans-serif; margin-bottom: 1px; line-height: 1; }
+  .chord    { font-size: 14px; font-weight: 500; color: var(--text); font-family: 'JetBrains Mono', monospace; line-height: 1.2; }
+  .chord-alt { font-size: 10px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
+  .split-bar {
+    background: var(--bg-bar); border: 1px solid var(--border); border-radius: 6px;
+    padding: 7px 9px; min-height: 52px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  }
+  .split-half { display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+  .split-half + .split-half { border-left: 1px dashed var(--border-strong); padding-left: 7px; }
+  .beat-label { font-size: 8px; color: var(--text-muted); font-family: 'Inter', sans-serif; margin-bottom: 1px; line-height: 1; }
+
+  .prog-note {
+    font-size: 11px; color: var(--text-muted); font-family: 'Inter', sans-serif;
+    margin-top: 6px; font-style: italic;
+  }
+
+  /* LYRICS COLUMN */
+  .lyrics-col {
+    border-left: 1px solid var(--border);
+    padding-left: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 0;
+    align-content: start;
+  }
+  .lyrics-col > div:last-child {
+    border-left: 1px solid var(--border);
+    padding-left: 20px;
+  }
+  .lyric-section { margin-bottom: 18px; }
+  .lyric-section:last-child { margin-bottom: 0; }
+  .lyric-col-break { grid-column: 1 / -1; height: 0; }
+
+  .lyric-label {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; font-family: 'Inter', sans-serif;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .lyric-label-verse  { color: var(--label-verse-fg); }
+  .lyric-label-pre    { color: var(--label-pre-fg); }
+  .lyric-label-chorus { color: var(--label-chorus-fg); }
+
+  .lyric-line {
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+  }
+  .lyric-line-muted {
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-style: italic;
+    margin: 0;
+  }
+  .lyric-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+  .repeat-badge {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
+    background: var(--label-chorus-bg); color: var(--label-chorus-fg);
+    padding: 1px 6px; border-radius: 3px; font-family: 'Inter', sans-serif;
+  }
+  .fs-btn {
+    position: fixed;
+    top: 14px;
+    right: 16px;
+    z-index: 999;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-strong);
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: background 0.15s, color 0.15s;
+  }
+  .fs-btn:hover { background: var(--border); color: var(--text); }
+</style>
+</head>
+<body>
+<button class="fs-btn" id="fsBtn" onclick="toggleFS()">⛶ Fullscreen</button>
+<script>
+  function toggleFS() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      document.getElementById('fsBtn').textContent = '✕ Exit';
+    } else {
+      document.exitFullscreen();
+      document.getElementById('fsBtn').textContent = '⛶ Fullscreen';
+    }
+  }
+  document.addEventListener('fullscreenchange', function() {
+    if (!document.fullscreenElement) {
+      document.getElementById('fsBtn').textContent = '⛶ Fullscreen';
+    }
+  });
+</script>
+<div class="page">
+
+  <div class="header">
+    <span class="song-title">Unstoppable</span>
+    <span class="song-meta">Sia &nbsp;·&nbsp; Key of D major &nbsp;·&nbsp; MD chart</span>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-strip">
+    <span class="form-pill pill-verse">V1</span>
+    <span class="form-arrow">→</span>
+    <span class="form-pill pill-verse">V2</span>
+    <span class="form-arrow">→</span>
+    <span class="form-pill pill-pre">Pre</span>
+    <span class="form-arrow">→</span>
+    <span class="form-pill pill-chorus">Ch</span>
+    <span class="form-arrow">→</span>
+    <span class="form-pill pill-verse">V3</span>
+    <span class="form-arrow">→</span>
+    <span class="form-pill pill-verse">V4</span>
+    <span class="form-arrow">→</span>
+    <span class="form-pill pill-pre">Pre</span>
+    <span class="form-arrow">→</span>
+    <span class="form-pill pill-chorus">Ch</span>
+    <span class="form-arrow">→</span>
+    <span class="form-pill pill-chorus">Ch</span>
+    <span class="form-arrow">→</span>
+    <span class="form-pill pill-pre">Pre</span>
+    <span class="form-arrow">→</span>
+    <span class="form-pill pill-chorus">Ch</span>
+    <span class="form-arrow">→</span>
+    <span class="form-pill pill-chorus">Ch</span>
+  </div>
+
+  <div class="main-columns">
+
+    <!-- CHORDS -->
+    <div class="chord-col">
+
+      <div class="section">
+        <div class="section-header">
+          <span class="label label-verse">Verse</span>
+          <span class="section-note">= Chorus — same progression</span>
+        </div>
+        <div class="bars">
+          <div class="bar"><span class="bar-num">1</span><span class="chord">F#m</span></div>
+          <div class="bar"><span class="bar-num">2</span><span class="chord">D</span></div>
+          <div class="bar"><span class="bar-num">3</span><span class="chord">A</span></div>
+          <div class="bar"><span class="bar-num">4</span><span class="chord">C#m</span></div>
+        </div>
+        <p class="prog-note">4-bar loop · repeats throughout</p>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="label label-pre">Pre-chorus</span>
+          <span class="section-note">8 bars · two chords per bar</span>
+        </div>
+        <div class="bars">
+          <div class="split-bar">
+            <div class="split-half"><span class="beat-label">1 · 1–2</span><span class="chord">D</span></div>
+            <div class="split-half"><span class="beat-label">3–4</span><span class="chord">E</span></div>
+          </div>
+          <div class="split-bar">
+            <div class="split-half"><span class="beat-label">2 · 1–2</span><span class="chord">C#m</span></div>
+            <div class="split-half"><span class="beat-label">3–4</span><span class="chord">D</span></div>
+          </div>
+          <div class="split-bar">
+            <div class="split-half"><span class="beat-label">3 · 1–2</span><span class="chord">D</span></div>
+            <div class="split-half"><span class="beat-label">3–4</span><span class="chord">E</span></div>
+          </div>
+          <div class="split-bar">
+            <div class="split-half"><span class="beat-label">4 · 1–2</span><span class="chord">C#m</span></div>
+            <div class="split-half"><span class="beat-label">3–4</span><span class="chord">%</span></div>
+          </div>
+        </div>
+        <p class="prog-note">Hangs on C#m into chorus</p>
+      </div>
+
+    </div>
+
+    <!-- LYRICS — 2 column grid -->
+    <div class="lyrics-col">
+
+      <!-- COL 1 -->
+      <div>
+        <div class="lyric-section">
+          <div class="lyric-label lyric-label-verse">Verse 1</div>
+          <p class="lyric-line">I'll smile, I know what it takes to fool this town</p>
+          <p class="lyric-line">I'll do it 'til the sun goes down</p>
+          <p class="lyric-line">And all through the nighttime — oh, yeah</p>
+          <div class="lyric-divider"></div>
+          <p class="lyric-line">Oh yeah, I'll tell you what you wanna hear</p>
+          <p class="lyric-line">Keep my sunglasses on while I shed a tear</p>
+          <p class="lyric-line">It's never the right time — yeah-yeah-yeah</p>
+        </div>
+        <div class="lyric-section">
+          <div class="lyric-label lyric-label-pre">Pre-chorus</div>
+          <p class="lyric-line">I'll put my armour on, show you how strong I am</p>
+          <p class="lyric-line">I'll put my armour on, I'll show you that I am...</p>
+        </div>
+        <div class="lyric-section">
+          <div class="lyric-label lyric-label-chorus">Chorus</div>
+          <p class="lyric-line">I'm unstoppable, I'm a Porsche with no brakes</p>
+          <p class="lyric-line">I'm invincible, yeah I win every single game</p>
+          <p class="lyric-line">I'm so powerful, I don't need batteries to play</p>
+          <p class="lyric-line">I'm so confident, yeah I'm unstoppable today</p>
+          <div class="lyric-divider"></div>
+          <p class="lyric-line-muted">Unstoppable today · Unstoppable today</p>
+          <p class="lyric-line-muted">Unstoppable today · I'm unstoppable today</p>
+        </div>
+      </div>
+
+      <!-- COL 2 -->
+      <div>
+        <div class="lyric-section">
+          <div class="lyric-label lyric-label-verse">Verse 2</div>
+          <p class="lyric-line">I break down, only alone I will cry out loud</p>
+          <p class="lyric-line">You'll never see what's hiding out</p>
+          <p class="lyric-line">Hiding out deep down — yeah-yeah</p>
+          <div class="lyric-divider"></div>
+          <p class="lyric-line">I know, I've heard that to let your feelings show</p>
+          <p class="lyric-line">Is the only way to make friendships grow</p>
+          <p class="lyric-line">But I'm too afraid now — yeah-yeah-yeah</p>
+        </div>
+        <div class="lyric-section">
+          <div class="lyric-label lyric-label-pre">Pre-chorus</div>
+          <p class="lyric-line">I'll put my armour on, show you how strong I am</p>
+          <p class="lyric-line">I'll put my armour on, I'll show you that I am...</p>
+        </div>
+        <div class="lyric-section">
+          <div class="lyric-label lyric-label-chorus">Chorus <span class="repeat-badge">same each time</span></div>
+          <p class="lyric-line">I'm unstoppable, I'm a Porsche with no brakes</p>
+          <p class="lyric-line">I'm invincible, yeah I win every single game</p>
+          <p class="lyric-line">I'm so powerful, I don't need batteries to play</p>
+          <p class="lyric-line">I'm so confident, I'm unstoppable today</p>
+          <div class="lyric-divider"></div>
+          <p class="lyric-line-muted">Unstoppable today · Unstoppable today</p>
+          <p class="lyric-line-muted">Unstoppable today · I'm unstoppable today</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
